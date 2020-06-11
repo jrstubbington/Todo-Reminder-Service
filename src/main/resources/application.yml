@@ -1,0 +1,74 @@
+spring:
+  main:
+    banner-mode: off
+  jackson:
+    serialization:
+      fail-on-empty-beans: false
+  #  http:
+  #    converters:
+  #      preferred-json-mapper: gson
+
+  ## Spring Datasource passed in via environment variables
+  datasource:
+    url:
+    username:
+    password:
+
+  servlet:
+    multipart:
+      max-file-size: 25MB
+      max-request-size: 25MB
+
+  quartz:
+    job-store-type: jdbc
+    properties:
+      org:
+        quartz:
+          scheduler:
+            instanceId: AUTO
+          jobStore:
+            isClustered: true
+server:
+  shutdown: graceful
+  http2:
+    # Enable HTTP/2 support, if the current environment supports it
+    enabled: true
+  compression:
+    # Enable response compression
+    enabled: true
+    # The comma-separated list of mime types that should be compressed
+    mime-types: text/html,text/xml,text/plain,text/css,text/javascript,application/javascript,application/json
+    # Compress the response only if the response size is at least 1KB
+    min-response-size: 1024
+
+springdoc:
+  show-actuator: true
+  swagger-ui:
+    doc-expansion: none
+    operationsSorter: method
+    tagsSorter: alpha
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+
+kafka:
+  bootstrapAddress: #set via env parameter
+  groupId: reminder-service
+
+logging:
+  config: classpath:log4j2.xml
+  level:
+    root: WARN
+    org:
+      example: DEBUG
+      apache:
+        catalina: WARN
+        coyote: WARN
+      springframework: WARN
+
+project:
+  package: ^project.groupId^
+  version: ^project.version^
