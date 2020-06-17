@@ -1,9 +1,9 @@
 package org.example.todo.reminders.listener;
 
 import lombok.extern.slf4j.Slf4j;
-import org.example.todo.common.dto.TaskDto;
 import org.example.todo.common.kafka.KafkaOperation;
 import org.example.todo.reminders.job.TestJob;
+import org.example.todo.tasks.generated.dto.TaskDto;
 import org.quartz.JobBuilder;
 import org.quartz.JobDataMap;
 import org.quartz.JobDetail;
@@ -88,12 +88,12 @@ public class TaskListener {
 				scheduler.scheduleJob(jobDetail, trigger);
 				break;
 			case DELETE:
-				log.debug("Removing task with uuid {}", taskUuid);
+				log.debug("Removing job for task with uuid {}", taskUuid);
 				scheduler.deleteJob(jobKey);
 				break;
 			case UPDATE:
 				log.debug("Updating task with uuid {}", taskUuid);
-				//TODO: ensure the job actually exists first or create new one
+				//Ensure the job actually exists first or create new one
 				// user could have deleted a reminder and then added one back later
 				JobDetail jobCheck = scheduler.getJobDetail(jobKey);
 				if (Objects.isNull(jobCheck)) {
