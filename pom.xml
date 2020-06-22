@@ -191,6 +191,16 @@
             <artifactId>tasks-service-client</artifactId>
             <version>[1.0-SNAPSHOT, 2.0-SNAPSHOT)</version>
         </dependency>
+        <dependency>
+            <groupId>org.example</groupId>
+            <artifactId>userpreferences-service-client</artifactId>
+            <version>[1.0-SNAPSHOT, 2.0-SNAPSHOT)</version>
+        </dependency>
+        <dependency>
+            <groupId>org.example</groupId>
+            <artifactId>accounts-service-client</artifactId>
+            <version>[1.0-SNAPSHOT, 2.0-SNAPSHOT)</version>
+        </dependency>
     </dependencies>
 
     <build>

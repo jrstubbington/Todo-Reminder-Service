@@ -59,7 +59,7 @@ kafka:
   groupId: reminder-service
 
 logging:
-  config: classpath:log4j2.xml
+  config: classpath:log4j2-json.xml
   level:
     root: WARN
     org:
