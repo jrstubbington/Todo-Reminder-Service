@@ -17,6 +17,5 @@ public class DatabaseCleanupJob implements Job {
 		StoredProcedureQuery query = entityManager
 				.createStoredProcedureQuery("DeleteJobsWithNoTriggers");
 		query.execute();
-
 	}
 }

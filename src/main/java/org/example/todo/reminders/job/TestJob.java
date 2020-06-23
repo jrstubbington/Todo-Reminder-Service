@@ -16,6 +16,9 @@ import org.quartz.JobExecutionContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.client.RestClientException;
 
+import java.util.HashSet;
+import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 
 @Slf4j
@@ -38,30 +41,33 @@ public class TestJob implements Job {
 		UUID workspaceUuid = (UUID) jobDataMap.get("workspaceUuid");
 		log.info("Job firing created by {}, assigned to {}, in workspace {}", createdByUserUuid, assignedToUserUuid, workspaceUuid);
 
-		//TODO: Getting the user preferences should be done when the job is created and set via JobData
-		// Yeah but then if a job is created but a user updates their preferences it won't be correct?
-		// Update job data when notification preferences are changed?
-		UserPreferenceDto assignedToUserPreference = getUserPreferenceByName(assignedToUserUuid, Preference.EMAIL_REMINDERS.toString());
-		UserPreferenceDto createdByUserPreference = getUserPreferenceByName(createdByUserUuid, Preference.EMAIL_REMINDERS.toString());
+		Set<UUID> notificationUuids = new HashSet<>();
+		notificationUuids.add(assignedToUserUuid);
+		notificationUuids.add(createdByUserUuid);
 
-		log.info("ASSIGNED TO PREFERENCE: {}", assignedToUserPreference);
-		log.info("CREATED BY PREFERENCE: {}", createdByUserPreference);
-
-		if (assignedToUserPreference.getUserSelection()) {
-			ResponseContainerUserDto responseContainerUserDto = userManagementApi.getUserByUUID(assignedToUserUuid);
-			if (!responseContainerUserDto.getData().isEmpty()) {
-				UserDto userDto = responseContainerUserDto.getData().get(0);
-				UserProfileDto userProfileDto= userDto.getUserProfile();
-				log.info("SENDING EMAIL TO USER {} {} AT ADDRESS {}", userProfileDto.getFirstName(), userProfileDto.getLastName(), userProfileDto.getEmail());
+		for (Preference preference : Preference.values()) {
+			for (UUID uuid : notificationUuids) {
+				UserPreferenceDto userPreference = getUserPreferenceByName(uuid, preference);
+				if (Objects.nonNull(userPreference) && Boolean.TRUE.equals(userPreference.getUserSelection())) {
+					handleReminderEvent(uuid, preference);
+				}
 			}
-
 		}
 	}
 
-	private UserPreferenceDto getUserPreferenceByName(UUID uuid, String name) { //TODO: convert to enum
+	private void handleReminderEvent(UUID uuid, Preference preference) {
+		ResponseContainerUserDto responseContainerUserDto = userManagementApi.getUserByUUID(uuid);
+		if (!responseContainerUserDto.getData().isEmpty()) {
+			UserDto userDto = responseContainerUserDto.getData().get(0);
+			UserProfileDto userProfileDto = userDto.getUserProfile();
+			log.info("SENDING {} TO USER {} {} AT ADDRESS {}", preference, userProfileDto.getFirstName(), userProfileDto.getLastName(), userProfileDto.getEmail());
+		}
+	}
+
+	private UserPreferenceDto getUserPreferenceByName(UUID uuid, Preference preferenceName) {
 		UserPreferenceDto userPreference = null;
 		try {
-			ResponseContainerUserPreferenceDto responseContainerUserPreferenceDto = userPreferencesManagementApi.getSpecificPreferenceForUserUuidByName(uuid, name);
+			ResponseContainerUserPreferenceDto responseContainerUserPreferenceDto = userPreferencesManagementApi.getSpecificPreferenceForUserUuidByName(uuid, preferenceName.toString());
 			if (!responseContainerUserPreferenceDto.getData().isEmpty()) {
 				userPreference = responseContainerUserPreferenceDto.getData().get(0);
 			}

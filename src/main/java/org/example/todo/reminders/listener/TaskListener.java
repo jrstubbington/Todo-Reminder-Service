@@ -22,6 +22,7 @@ import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.stereotype.Component;
 
+import java.time.OffsetDateTime;
 import java.util.Date;
 import java.util.Objects;
 import java.util.UUID;
@@ -63,6 +64,14 @@ public class TaskListener {
 			return;
 		}
 
+		//TODO: Ensure that reminder date is in the future.
+		if (taskDto.getReminderDate().isBefore(OffsetDateTime.now())) {
+			log.debug("Task with UUID {} has a reminder date that's in the past; at time {}", taskUuid, taskDto.getReminderDate());
+			scheduler.deleteJob(jobKey);
+			acknowledgment.acknowledge();
+			return;
+		}
+
 		JobDataMap jobDataMap = new JobDataMap();
 		jobDataMap.put("createdByUserUuid", taskDto.getCreatedByUserUuid());
 		jobDataMap.put("assignedToUserUuid", taskDto.getAssignedToUserUuid());
@@ -77,7 +86,7 @@ public class TaskListener {
 		Trigger trigger = TriggerBuilder.newTrigger()
 				.withIdentity(triggerKey)
 				.forJob(jobDetail)
-				.startAt(new Date(taskDto.getReminderDate().toInstant().toEpochMilli()))
+				.startAt(Date.from(taskDto.getReminderDate().toInstant()))
 				.withSchedule(SimpleScheduleBuilder.simpleSchedule())
 				.build();
 
